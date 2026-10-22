@@ -1,0 +1,38 @@
+services:
+  db:
+    image: docker.io/library/mariadb:12
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=flarum
+      - MYSQL_USER=flarum
+      - MYSQL_PASSWORD=flarum
+    restart: unless-stopped
+
+  flarum:
+    image: docker.io/makos/flarum
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    volumes:
+      - data:/data
+    environment:
+      - DB_HOST=db
+      - DB_NAME=flarum
+      - DB_USER=flarum
+      - DB_PASSWORD=flarum
+      - FLARUM_BASE_URL=${FLARUM_BASE_URL:-http://localhost:8000}
+    restart: unless-stopped
+
+volumes:
+  db:
+  data:

@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 
-ARG FLARUM_VERSION=v1.8.10
-ARG ALPINE_VERSION=3.22
+ARG FLARUM_VERSION=v1.8.20
+ARG ALPINE_VERSION=3.24
 
-FROM crazymax/yasu:latest AS yasu
-FROM crazymax/alpine-s6:${ALPINE_VERSION}-2.2.0.3
+FROM docker.io/crazymax/yasu:latest AS yasu
+FROM docker.io/crazymax/alpine-s6:${ALPINE_VERSION}-2.2.0.3
 
 COPY --from=yasu / /
 RUN apk --update --no-cache add \
@@ -45,6 +45,7 @@ RUN apk --update --no-cache add \
     shadow \
     tar \
     tzdata \
+  && ln -s /usr/bin/php83 /usr/bin/php \
   && rm -rf /tmp/* /var/www/*
 
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS="2"\
@@ -55,7 +56,8 @@ ENV S6_BEHAVIOUR_IF_STAGE2_FAILS="2"\
 ARG FLARUM_VERSION
 RUN mkdir -p /opt/flarum \
   && curl -sSL https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-  && COMPOSER_CACHE_DIR="/tmp" composer create-project flarum/flarum /opt/flarum --no-install \
+  && COMPOSER_CACHE_DIR="/tmp" composer create-project flarum/flarum /opt/flarum "^1.8" --no-install \
+  && composer config --working-dir /opt/flarum policy.advisories.block false \
   && COMPOSER_CACHE_DIR="/tmp" composer require --working-dir /opt/flarum flarum/core:${FLARUM_VERSION} \
   && composer clear-cache \
   && addgroup -g ${PGID} flarum \
