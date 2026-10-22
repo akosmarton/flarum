@@ -65,6 +65,34 @@ RUN mkdir -p /opt/flarum \
   && chown -R flarum:flarum /opt/flarum \
   && rm -rf /root/.composer /tmp/*
 
+# Extensions baked into the image. Pass an empty value to build a plain Flarum
+# image; `extension require` still works at runtime for anything added later.
+ARG FLARUM_EXTENSIONS="\
+  askvortsov/flarum-categories \
+  clarkwinkelmann/flarum-ext-mass-actions \
+  fof/analytics \
+  fof/anti-spam \
+  fof/cookie-consent \
+  fof/filter \
+  fof/nightmode \
+  fof/oauth \
+  fof/pwned-passwords \
+  fof/recaptcha \
+  fof/spamblock \
+  fof/split \
+  fof/terms \
+  fof/upload \
+  hikarilan/flarum-passkey-login \
+  ianm/gravatar \
+  ianm/twofactor \
+  v17development/flarum-seo"
+
+RUN if [ -n "${FLARUM_EXTENSIONS}" ]; then \
+    COMPOSER_CACHE_DIR="/tmp" composer require --working-dir /opt/flarum --no-interaction --no-progress ${FLARUM_EXTENSIONS} \
+      && chown -R flarum:flarum /opt/flarum; \
+  fi \
+  && rm -rf /root/.composer /tmp/*
+
 COPY rootfs /
 
 EXPOSE 8000

@@ -237,6 +237,26 @@ Clearing the cache...
 > You cannot use [Bazaar marketplace extension](https://discuss.flarum.org/d/5151-bazaar-the-extension-marketplace)
 > to install extensions for now.
 
+### Build extensions into the image
+
+Extensions can also be installed while building the image, so they exist in
+`/opt/flarum/vendor` and do not have to be fetched when a container starts. Use
+the `FLARUM_EXTENSIONS` build argument; it defaults to the list declared in the
+[`Dockerfile`](Dockerfile):
+
+```bash
+# buildx bake
+docker buildx bake --set "*.args.FLARUM_EXTENSIONS=askvortsov/flarum-categories fof/upload"
+
+# plain docker
+docker build --build-arg "FLARUM_EXTENSIONS=askvortsov/flarum-categories fof/upload" .
+```
+
+Baked-in extensions still have to be enabled from the admin panel, and their
+migrations run when the container starts. After switching, remove the packages
+from `/data/extensions/list` so the entrypoint does not try to reinstall them at
+every boot.
+
 ### Sending mails with SMTP
 
 You can use our SMTP relay `msmtpd` service published on port `2500` and
